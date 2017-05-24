@@ -68,6 +68,9 @@ main()
 	if(bind(listenfd, (SA *)&servaddr, len) < 0)
 		err_print("bind error");
 
+	if(listen(listenfd, 10) < 0)
+		err_print("listen error");
+
 	while(1){
 		if((connfd = accept(listenfd, (SA *)&clientaddr, &len)) < 0)
 			err_print("accept error");
@@ -79,6 +82,7 @@ main()
 			printf("Connect to %s:%d\n", clientip, ntohs(clientaddr.sin_port));
 			printf("Fork a new thread %d\n", pid);
 			close(listenfd);
+			exit(0);
 		}
 		else
 			close(connfd);
