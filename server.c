@@ -18,7 +18,8 @@ typedef void (*sighandler_t)(int);
 static void
 err_print(const char *err)
 {
-	fprintf(stderr, "errno:%d %s\n%s\n", errno, strerror(errno), err);
+	fprintf(stderr, "%s : %s\n", err, strerror(errno));
+	fflush(stderr);
 	exit(-1);
 }
 
