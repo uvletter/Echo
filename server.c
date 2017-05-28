@@ -19,7 +19,6 @@ static void
 err_print(const char *err)
 {
 	fprintf(stderr, "%s : %s\n", err, strerror(errno));
-	fflush(stderr);
 	exit(-1);
 }
 

@@ -29,7 +29,7 @@ send_msg(int socket)
 	while(fgets(input, 1024, stdin)){
 		write(socket, input, strlen(input));
 		if((len = read(socket, input, 1024)) == EOF)
-			err_print("server terminated exceptly");
+			err_print("server terminated unexpectedly");
 		input[len] = 0;
 		fputs(input, stdout);
 	}
@@ -55,6 +55,5 @@ main()
 			err_print("Connect error");
 	}
 	send_msg(connfd[0]);
-	close(connfd[0]);
 	exit(0);
 }
