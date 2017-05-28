@@ -2,6 +2,7 @@
 #include<sys/types.h>
 #include<netinet/in.h>
 #include<arpa/inet.h>
+#include<unistd.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -17,6 +18,21 @@ err_print(const char *err)
 {
 	fprintf(stderr, "errno:%d %s\n%s\n", errno, strerror(errno), err);
 	exit(-1);
+}
+
+static void
+send_msg(int socket)
+{
+	char input[1024];
+	size_t len;
+
+	while(fgets(input, 1024, stdin)){
+		write(socket, input, strlen(input));
+		if((len = read(socket, input, 1024)) == EOF)
+			err_print("server terminated exceptly");
+		input[len] = 0;
+		fputs(input, stdout);
+	}
 }
 
 int
@@ -38,5 +54,7 @@ main()
 		if((connect(connfd[i],  (SA *)&servaddr, sizeof(servaddr)))<0)
 			err_print("Connect error");
 	}
+	send_msg(connfd[0]);
+	close(connfd[0]);
 	exit(0);
 }

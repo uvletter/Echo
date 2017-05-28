@@ -41,9 +41,36 @@ static void
 clean_process(int signum)
 {
 	pid_t pid;
-	if((pid = wait(NULL)) < 0)
+	fprintf(stderr, "Begin to collect zombie process\n");
+	while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
+	//while((pid = wait(NULL))>0)
+		printf("Thread %d is closed\n", pid);
+	if(pid == -1 && errno != ECHILD)
 		err_print("wait error");
-	printf("Thread %d is closed", pid);
+}
+
+static void
+quit(int signum)
+{
+	printf("Thread %d terminated by user\n", getpid());
+	//sleep(1);
+	exit(0);
+}
+
+static void
+echo(int sockfd)
+{
+	char buf[1024];
+	ssize_t len;
+
+	for(;;){
+		while((len = read(sockfd, buf, 1024)) > 0)
+			write(sockfd, buf, len);
+		if(len ==0)
+			break;
+		else
+			err_print("read error");
+	}
 }
 
 int
@@ -56,6 +83,9 @@ main()
 	char clientip[16];
 	
 	if(signal_s(SIGCHLD, clean_process) == SIG_ERR)
+		err_print("signal error");
+
+	if(signal_s(SIGINT, quit) == SIG_ERR)
 		err_print("signal error");
 
 	servaddr.sin_family = AF_INET;
@@ -78,14 +108,17 @@ main()
 
 		if((pid = fork()) < 0)
 			err_print("fork error");
-		else if(pid > 0){
+		else if(pid == 0){
 			inet_ntop(AF_INET, &clientaddr.sin_addr, clientip, sizeof(clientip));
 			printf("Connect to %s:%d\n", clientip, ntohs(clientaddr.sin_port));
-			printf("Fork a new thread %d\n", pid);
 			close(listenfd);
+
+			echo(connfd);
 			exit(0);
 		}
-		else
+		else{
+			printf("Fork a new thread %d\n", pid);
 			close(connfd);
+		}
 	}
 }
